@@ -1,121 +1,119 @@
-class Coffee:
+class Article:
     all = []
-    def __init__(self, name):
-        self._name = name
-        Coffee.all.append(self)
-    
-    def get_name(self):
-        return self._name
 
-    def set_name(self, value):
-        if hasattr(self, "_name"):
-            raise AttributeError("ae")
-        elif type(value) == str and len(value)>= 3:
-            self._name = value
-            
-    name = property(get_name, set_name)  
-        
-    def orders(self):
-        orderList = []
-        for order in Order.all:
-            if order.coffee is self:
-                orderList.append(order)
-        return orderList
+    def __init__(self, author, magazine, title):
+        self._author = author
+        self._magazine = magazine
+        self._title = title
+        Article.all.append(self)
 
-    def customers(self):
-        customerList = set()
-        for order in Order.all:
-            if order.coffee is self:
-                customerList.add(order.customer)
-        return list(customerList)
-    
-    def num_orders(self):
-        numorders = 0
-        for order in Order.all:
-            if order.coffee is self:
-                numorders += 1
-        return numorders
-    
-    def average_price(self):
-        orders = self.orders()
-        total_price = 0
-        if len(orders) == 0:
-            return 0
-        for order in orders:
-            total_price += order.price
-        return total_price / len(orders)
+    @property
+    def title(self):
+        return self._title
 
-class Customer:
+    @title.setter
+    def title(self, value):
+        raise AttributeError("Can't change title")
+
+    @property
+    def author(self):
+        return self._author
+
+    @author.setter
+    def author(self, new_author):
+        self._author = new_author
+
+    @property
+    def magazine(self):
+        return self._magazine
+
+    @magazine.setter
+    def magazine(self, new_magazine):
+        self._magazine = new_magazine
+
+
+class Author:
     def __init__(self, name):
         self._name = name
 
-    def get_name(self):
+    @property
+    def name(self):
         return self._name
 
-    def set_name(self,value):
-        if type(value) == str and (1 < len(value) < 16):
-            self._name = value
-        # else:
-        #     raise ValueError("value error")
-    name = property(get_name,set_name)
-    
-    def orders(self):
-        orderList = []
-        for order in Order.all:
-            if order.customer is self:
-                orderList.append(order)
-        return orderList
-    
-    def coffees(self):
-        coffeeList = set()
-        for order in Order.all:
-            if order.customer is self:
-                coffeeList.add(order.coffee)
-        return list(coffeeList)
- 
-    def create_order(self, coffee, price):
-        order = Order(self, coffee, price)
-        return order
-    
-class Order:
-    all = []
-    def __init__(self, customer, coffee, price):
-        self._customer = customer
-        self._coffee = coffee
-        self._price = price
-        Order.all.append(self)
-    
-    # def get_price(self):
-    #     return self._price
+    @name.setter
+    def name(self, value):
+        raise AttributeError("Can't change name")
 
-    # def set_price(self, value):
-    #     if hasattr(self, "_price"):
-    #         raise AttributeError("ae")
-    #     elif type(price) == float and 1.0 <= price <= 10.0:
-    #         self._price = value
-    
-    def get_price(self):
-        return self._price
+    def articles(self):
+        return [article for article in Article.all if article.author == self]
 
-    def set_price(self, value):
-        if type(value) is float:
-            if 1 <= float(value) <= 10:
-                if not hasattr(self, 'price'):
-                    self._price = value
-                else:
-                    raise ValueError("Order has already been instantiated")
-            else:
-                raise ValueError("Price must be between 1.0 and 10.0")
+    def magazines(self):
+        return list(set([article.magazine for article in self.articles()]))
+
+    def add_article(self, magazine, title):
+        article = Article(self, magazine, title)
+        return article
+
+    def topic_areas(self):
+        if not self.articles():
+            return None
+        return list(set([article.magazine.category for article in self.articles()]))
+
+
+class Magazine:
+    def __init__(self, name, category):
+        self._name = name
+        self._category = category
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, new_name):
+        if not isinstance(new_name, str) or len(new_name) < 2 or len(new_name) > 16:
+            self._name = "Default Name"
         else:
-            raise ValueError("Price must be a number")
+            self._name = new_name
 
-    price = property(get_price, set_price)
-    
-    def get_customer(self):
-        return self._customer
-    customer = property(get_customer)  
+    @property
+    def category(self):
+        return self._category
 
+    @category.setter
+    def category(self, new_category):
+        if not isinstance(new_category, str) or len(new_category) <= 0:
+            self._category = "Default Category"
+        else:
+            self._category = new_category
+
+    def articles(self):
+        return [article for article in Article.all if article.magazine == self]
+
+    def contributors(self):
+        return list(set([article.author for article in self.articles()]))
+
+    def article_titles(self):
+        articles = self.articles()
+        if not articles:
+            return None
+        return [article.title for article in articles]
+
+    # def contributing_authors(self):
+    #     authors = {}
+    #     for article in self.articles():
+    #         if article.author in authors:
+    #             authors[article.author] += 1
+    #         else:
+    #             authors[article.author] = 1
+    #     contributing_authors = [author for author, count in authors.items() if count > 2]
+    #     return contributing_authors if contributing_authors else None
+
+    def contributing_authors(self):
+            author_counts = {}
+            for article in self._articles:
+                author = article.author
+                author_counts[author] = author_counts.get(author, 0) + 1
+            return [author for author, count in author_counts.items() if count > 2]
+        
     
-    def get_coffee(self):
-        return self._coffee
-    coffee = property(get_coffee)  
